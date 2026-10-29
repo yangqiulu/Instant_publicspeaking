@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1117">
+<title>串珠教练 · 即时演讲对讲训练</title>
+<link id="manifest-link" rel="manifest" href="#">
+<style>
+:root{
+  --bg:#0f1117; --card:#181c28; --card2:#1f2434; --text:#e8eaf2; --muted:#9aa1b5;
+  --line:#2a3045; --brand:#6f6fff; --brand2:#4B3FE3; --good:#1DC981; --warn:#EFAA17; --bad:#E8463A;
+  --radius:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 system-ui,-apple-system,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+  display:flex;flex-direction:column;height:100dvh;overscroll-behavior:none}
+[hidden]{display:none!important}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 4px;flex:none}
+.brand{font-weight:700;font-size:17px;letter-spacing:.5px}
+.streak{font-size:13px;color:var(--muted)}
+main{flex:1;overflow-y:auto;padding:4px 16px 96px}
+.view{animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(24,28,40,.97);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:20}
+.tabbar button{flex:1;background:none;border:0;color:var(--muted);font-size:14px;padding:10px 0;border-radius:12px;cursor:pointer}
+.tabbar button.active{color:#a8b0ff;background:rgba(111,111,255,.14);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:16px;font-size:17px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.btn.primary{background:var(--brand2);color:#fff}
+.btn.primary:active{background:#3a30c9}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);margin-top:10px}
+.btn:disabled{opacity:.45}
+.actions{margin-top:14px}
+.lead{color:var(--muted);font-size:14px;margin:8px 0 14px}
+.banner{border-radius:12px;padding:12px 14px;font-size:14px;margin:10px 0}
+.banner.warn{background:rgba(232,70,58,.12);color:#ffb1a9;border:1px solid rgba(232,70,58,.35)}
+.mode-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin:10px 0;cursor:pointer;touch-action:manipulation}
+.mode-card:active{background:var(--card2)}
+.mc-tag{display:inline-block;font-size:12px;color:#a8b0ff;background:rgba(111,111,255,.14);padding:2px 10px;border-radius:999px;margin-bottom:8px}
+.mc-title{font-size:18px;font-weight:700}
+.mc-desc{color:var(--muted);font-size:14px;margin-top:4px}
+.tip{color:var(--muted);font-size:13px;text-align:center;margin:18px 0 8px}
+.s-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 2px}
+.s-mode{font-weight:600}
+.chip{font-size:12px;padding:2px 12px;border-radius:999px;background:rgba(111,111,255,.14);color:#a8b0ff}
+.m-tag{font-size:12px;color:var(--muted);margin-bottom:6px}
+.m-big{font-size:21px;font-weight:700;line-height:1.5}
+.m-body{font-size:16px;line-height:1.85;white-space:pre-wrap}
+.m-foot{font-size:12px;color:var(--muted);margin-top:8px}
+.m-small{max-height:88px;overflow-y:auto}
+.m-linkrow{display:flex;gap:10px;margin-top:10px}
+.linkbtn{background:none;border:1px solid var(--line);color:#a8b0ff;border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer}
+.keys{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.keys span{background:rgba(111,111,255,.14);color:#a8b0ff;border-radius:999px;padding:3px 12px;font-size:13px}
+.kgrid{display:flex;gap:8px;margin:12px 0 4px}
+.kgrid input{flex:1;min-width:0}
+input,textarea,select{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px;font-size:16px;width:100%;outline:none}
+input:focus,textarea:focus{border-color:var(--brand)}
+label.fld{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+.timerwrap{display:flex;flex-direction:column;align-items:center;margin:10px 0}
+.ring{width:190px;height:190px}
+.ring .track{fill:none;stroke:var(--line);stroke-width:10}
+.ring .prog{fill:none;stroke:var(--brand);stroke-width:10;stroke-linecap:round;transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dashoffset .3s linear,stroke .3s}
+.ring .time{fill:var(--text);font-size:40px;font-weight:700;font-family:system-ui,sans-serif}
+.ring .tlabel{fill:var(--muted);font-size:15px}
+.micline{display:flex;align-items:center;gap:8px;color:var(--bad);font-size:14px;margin-top:6px}
+.micdot{width:10px;height:10px;border-radius:50%;background:var(--bad);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.transcript{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;min-height:110px;max-height:32vh;overflow-y:auto;font-size:15px;line-height:1.8;margin:10px 0}
+.transcript .ph{color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0}
+.srow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.srow .sl{flex:1;font-size:14px}
+.srow .sv{font-weight:700;font-size:16px}
+.badge{font-size:12px;padding:2px 10px;border-radius:999px;flex:none}
+.badge.good{color:var(--good);background:rgba(29,201,129,.13)}
+.badge.mid{color:var(--warn);background:rgba(239,170,23,.13)}
+.badge.bad{color:var(--bad);background:rgba(232,70,58,.13)}
+.fillrow{display:flex;justify-content:space-between;font-size:14px;padding:6px 0}
+.ai-head{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px}
+.ai-text{font-size:15px;line-height:1.85;white-space:pre-wrap}
+.ai-status{color:var(--muted);font-size:14px}
+details.card summary{cursor:pointer;font-weight:600;font-size:15px}
+details.card .dtxt{margin-top:10px;font-size:15px;line-height:1.85;white-space:pre-wrap;color:#cfd3e0}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#2a3045;color:#fff;border-radius:999px;padding:10px 20px;font-size:14px;z-index:99;max-width:86%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.st-big{display:flex;gap:10px;margin:12px 0}
+.st-cell{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.st-num{font-size:22px;font-weight:800}
+.st-lab{font-size:12px;color:var(--muted);margin-top:2px}
+.hist{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);font-size:14px;gap:8px}
+.hist .hm{color:var(--muted);flex:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.chips button{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer}
+.chips button.on{background:rgba(111,111,255,.16);border-color:var(--brand);color:#a8b0ff}
+.hint{font-size:13px;color:var(--muted);line-height:1.7;margin:10px 0}
+.switch{position:relative;width:52px;height:30px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+.switch input:checked + .slider{background:var(--brand2)}
+.switch input:checked + .slider:before{transform:translateX(22px)}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:14px 0}
+h2{font-size:20px;margin:14px 0 4px}
+h3{font-size:15px;margin:18px 0 8px;color:#a8b0ff}
+</style>
+</head>
+<body>
+<header><div class="brand">🎙 串珠教练</div><div class="streak" id="homeStreak"></div></header>
+<main id="main">
+
+<section id="v-home" class="view">
+  <div id="srWarn" class="banner warn" hidden="">当前浏览器不支持语音识别。请用 <b>Android Chrome</b> 打开本页（微信内请点右上角菜单 →「在浏览器中打开」）。</div>
+  <p class="lead">每天 15 分钟，练「张口就有结构」：结论先行 · 路标词 · 20秒串珠。</p>
+  <div class="mode-card" data-mode="retell">
+    <span class="mc-tag">第 1–2 周 · 输入转码</span>
+    <div class="mc-title">复述重构</div>
+    <div class="mc-desc">读一篇短文，合上，60 秒用 PREP 复述核心</div>
+  </div>
+  <div class="mode-card" data-mode="topic">
+    <span class="mc-tag">第 3–4 周 · 即兴主题</span>
+    <div class="mc-title">即兴开讲</div>
+    <div class="mc-desc">抽题 → 15 秒写 3 个关键词 → 90 秒开讲</div>
+  </div>
+  <div class="mode-card" data-mode="qa">
+    <span class="mc-tag">第 5 周起 · 压力反应</span>
+    <div class="mc-title">快问快答</div>
+    <div class="mc-desc">教练语音提问，3 秒后必须开口，共 5 轮</div>
+  </div>
+  <div class="tip" id="homeToday"></div>
+</section>
+
+<section id="v-session" class="view" hidden="">
+  <div class="s-top"><span class="s-mode" id="s-mode"></span><span class="chip" id="s-phase"></span></div>
+  <div class="card" id="s-material"></div>
+  <div class="kgrid" id="s-prep" hidden="">
+    <input id="k1" placeholder="关键词1"><input id="k2" placeholder="关键词2"><input id="k3" placeholder="关键词3">
+  </div>
+  <div class="keys" id="s-keys" hidden=""></div>
+  <div class="timerwrap">
+    <svg class="ring" viewBox="0 0 200 200">
+      <circle class="track" cx="100" cy="100" r="88"></circle>
+      <circle class="prog" id="ringProg" cx="100" cy="100" r="88" stroke-dasharray="552.9" stroke-dashoffset="0"></circle>
+      <text class="time" id="ringTime" x="100" y="100" text-anchor="middle" dominant-baseline="middle">--:--</text>
+      <text class="tlabel" id="ringLabel" x="100" y="134" text-anchor="middle"></text>
+    </svg>
+    <div class="micline" id="micline" hidden=""><span class="micdot"></span>正在聆听，请开讲</div>
+  </div>
+  <div class="transcript" id="s-live" hidden=""><span class="ph">你的发言会实时显示在这里…</span></div>
+  <div class="actions">
+    <button class="btn primary" id="s-primary"></button>
+    <button class="btn ghost" id="s-secondary" hidden=""></button>
+  </div>
+</section>
+
+<section id="v-analysis" class="view" hidden="">
+  <h2>本轮复盘</h2>
+  <div class="stats" id="a-stats"></div>
+  <div class="card" id="a-fillers"></div>
+  <div class="card">
+    <div class="ai-head">🧠 教练点评</div>
+    <div class="ai-status" id="a-ai-status"></div>
+    <div class="ai-text" id="a-ai-text" hidden=""></div>
+    <button class="btn ghost" id="a-ai-retry" hidden="">重新点评</button>
+    <button class="btn ghost" id="a-ai-goset" hidden="">去设置，解锁 AI 教练</button>
+  </div>
+  <details class="card"><summary>发言全文（点开可复制）</summary><div class="dtxt" id="a-text"></div></details>
+  <div class="actions">
+    <button class="btn primary" id="a-again"></button>
+    <button class="btn ghost" id="a-home">保存并返回</button>
+  </div>
+</section>
+
+<section id="v-stats" class="view" hidden="">
+  <h2>训练数据</h2>
+  <div class="st-big">
+    <div class="st-cell"><div class="st-num" id="st-streak">0</div><div class="st-lab">连续打卡</div></div>
+    <div class="st-cell"><div class="st-num" id="st-count">0</div><div class="st-lab">近7天轮数</div></div>
+    <div class="st-cell"><div class="st-num" id="st-cpm">-</div><div class="st-lab">平均语速 字/分</div></div>
+  </div>
+  <div class="card">
+    <div class="fillrow"><span>口头禅（次/分）</span><b id="st-fill">-</b></div>
+    <div class="fillrow"><span>路标词（次/轮）</span><b id="st-sign">-</b></div>
+    <div class="fillrow"><span>首句平均字数</span><b id="st-first">-</b></div>
+  </div>
+  <h3>最近记录</h3>
+  <div id="st-list"></div>
+  <button class="btn ghost" id="st-copy">复制训练汇报，发给教练</button>
+</section>
+
+<section id="v-settings" class="view" hidden="">
+  <h2>设置</h2>
+  <h3>AI 教练（大模型接口）</h3>
+  <div class="chips" id="preset-chips">
+    <button data-p="sili">硅基流动（推荐）</button>
+    <button data-p="zhipu">智谱（跨域受限）</button>
+    <button data-p="custom">自定义</button>
+  </div>
+  <label class="fld">接口地址（OpenAI 兼容 chat/completions）</label>
+  <input id="set-endpoint" placeholder="https://open.bigmodel.cn/api/paas/v4/chat/completions">
+  <label class="fld">模型名</label>
+  <input id="set-model" placeholder="glm-4-flash">
+  <label class="fld">API Key（只保存在本机，不会发给其他任何人）</label>
+  <input id="set-key" type="password" placeholder="粘贴你的 Key">
+  <button class="btn ghost" id="set-test">测试连接</button>
+  <div class="hint" id="set-test-result"></div>
+  <h3>教练语音</h3>
+  <div class="setrow"><span>教练说话</span>
+    <label class="switch"><input type="checkbox" id="set-muted"><span class="slider"></span></label>
+  </div>
+  <div class="setrow"><span>语速</span><input type="range" id="set-rate" min="0.8" max="1.4" step="0.05" style="width:150px">
+  </div>
+  <h3>数据</h3>
+  <button class="btn ghost" id="set-export">复制全部训练数据（备份）</button>
+  <button class="btn ghost" id="set-clear">清空所有数据</button>
+  <h3>使用说明</h3>
+  <div class="hint">
+    · 推荐用 Android Chrome 打开本页面，需联网<br>
+    · 语音识别由浏览器完成，转写与统计只存在本机<br>
+    · AI 点评会把「你的发言转写 + 统计」发送到你填写的接口<br>
+    · 智谱接口不允许浏览器直连（跨域受限），推荐硅基流动；报错可换接口或发给教练排查<br>
+    · Chrome 菜单 →「添加到主屏幕 / 安装应用」，即可每天从桌面进入
+  </div>
+</section>
+</main>
+
+<nav class="tabbar" id="tabbar">
+  <button data-view="home" class="active">训练</button>
+  <button data-view="stats">数据</button>
+  <button data-view="settings">设置</button>
+</nav>
+<div class="toast" id="toast" hidden=""></div>
+
+<script>
+"use strict";
+/* ================= 常量与题库 ================= */
+const TOPICS=["一个我想改掉的习惯","我最近做成的一件小事","如果每天多出一小时，我会用来做什么","我最佩服的一种品质，以及身边的例子","十年后我想成为什么样的人","谈谈「慢」的价值","一次难忘的旅行或一顿饭","我如何面对压力","一部作品对我的影响","我最近学到的一个新东西","周末怎么过才有价值","我工作中最有成就感的一件事"];
+const QUESTIONS=["向我推荐一部你最近看的东西，为什么值得看？","领导问你「这个项目还能提前吗」，你怎么答？","用一分钟介绍你的工作或专业是做什么的。","开会前老板说「你先讲两句」，你讲什么？","朋友问「周末去哪玩比较好」，给出建议。","汇报时被问「为什么数据下滑」，怎么回应？","你怎么看「先完成，再完美」？","面试官问「说说你的缺点」，怎么答？","有人问你「学这个有什么用」，你怎么解释？","只能保留三个手机App，你留哪三个？","「钱」和「意义」，工作中哪个更重要？","家人让你评理一件事，你怎么开头？"];
+const PASSAGES=["复利是世界上最容易被低估的力量。它的定义很简单：收益继续产生收益。本金增长产生的利息，下一期会加入本金继续生息。假设年收益率是百分之七，大约十年本金可以翻一倍；再过十年，就是四倍。大多数人半途放弃，不是因为不懂这个数学，而是因为前几年曲线看起来几乎是平的，没有任何激励。无论理财、健身还是学一门技能，真正的回报都堆在后半段。所以判断一件事值不值得做，更好的标准不是它现在给你多少回报，而是它的回报能不能累加。能累加的事，慢一点也值得做。","心理学家发现，决定水平的关键不是练习时长，而是练习结构。有效的练习有三个特征：第一，目标具体，一次只改一个点；第二，难度略高于当前水平，待在舒适区边缘；第三，有即时反馈，错了马上知道错在哪。光是重复已经会做的动作，时间再长也只是原地踏步，甚至固化错误。这也解释了为什么有人开了二十年车，驾驶水平还不如用心练了两年的人。想进步，与其延长时间，不如改造结构：把大目标拆小，把反馈变快，把难度调到踮脚够得着。","大脑并不擅长多任务，它擅长的是快速切换。每次从一个任务切到另一个，都需要重新加载上下文，这有成本：研究发现，被打断后，人平均需要二十多分钟才能完全回到原来的状态。更麻烦的是，切换的瞬间会带来一种高效的错觉，因为切换本身有新鲜感。深度工作之所以稀有，正是因为它要求长时间不切换。对抗的办法不是更强的意志力，而是减少切换的入口：关掉通知，把手机放到另一个房间，把大块时间提前划出来。注意力像探照灯，功率有限，照得越集中，穿透越深。"];
+const FILLERS=["嗯","呃","那个","这个","然后","就是","其实","对吧","怎么说"];
+const SIGNPOSTS=["第一","第二","第三","首先","其次","最后","因为","所以","例如","比如","换句话说","总之","综上","我认为","我觉得","重点是"];
+const COACH_SYS="你是「串珠教练」，一位即时演讲教练，正在手机上与学员进行语音对讲训练。\n学员特点：注意力易跳跃、思维常超前于口头表达；轻松对话流畅但正式演讲易卡壳，长期依赖逐字稿。\n训练方法论：\n1. 结论先行：首句必须抛出观点或答案（PREP：观点-理由-例子-重申；三点式；时间轴）\n2. 路标词外化结构：第一/第二/第三/换句话说/举个例子/所以重点是\n3. 20秒串珠：把长表达切成若干20秒小单元，每单元=观点一句+支撑一句，单元间允许停顿1~2秒\n4. 关键词卡片：准备时只写3个关键词，禁止逐字稿\n点评规则：\n- 先指出一个学员做得具体的地方，可引用原话\n- 再指出最多两个最需改进的问题，优先级：首句是否有结论 > 路标词数量 > 句子长度 > 口头禅\n- 最后给一个15秒内可完成的微练习\n全程口语化短句，禁止书面腔和任何符号列表，总长不超过150字，会被语音朗读。语气直接、具体、鼓励但不油腻，像健身房私教。";
+const PRESETS={zhipu:{endpoint:"https://open.bigmodel.cn/api/paas/v4/chat/completions",model:"glm-4-flash"},sili:{endpoint:"https://api.siliconflow.cn/v1/chat/completions",model:"Qwen/Qwen2.5-7B-Instruct"}};
+
+/* ================= 工具 ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let toastT=null;
+function toast(msg,ms=2600){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,ms);}
+function fmt(s){s=Math.max(0,s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function countSub(t,s){return s?t.split(s).length-1:0;}
+function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+/* ================= 存储 ================= */
+const DEF={endpoint:PRESETS.sili.endpoint,model:PRESETS.sili.model,key:"",rate:1.05,muted:false};
+function getSettings(){try{const s=JSON.parse(localStorage.getItem("szj_set")||"{}");return Object.assign({},DEF,s);}catch(e){return Object.assign({},DEF);}}
+function saveSettings(){const s={endpoint:$("#set-endpoint").value.trim(),model:$("#set-model").value.trim(),key:$("#set-key").value.trim(),rate:parseFloat($("#set-rate").value),muted:$("#set-muted").checked};localStorage.setItem("szj_set",JSON.stringify(s));}
+function getSessions(){try{return JSON.parse(localStorage.getItem("szj_sessions")||"[]");}catch(e){return [];}}
+function bumpStreak(){const today=new Date().toISOString().slice(0,10);let st;try{st=JSON.parse(localStorage.getItem("szj_streak")||'{"last":"","n":0}');}catch(e){st={last:"",n:0};}
+ if(st.last===today)return st.n;const yest=new Date(Date.now()-864e5).toISOString().slice(0,10);
+ st.n=(st.last===yest)?st.n+1:1;st.last=today;localStorage.setItem("szj_streak",JSON.stringify(st));return st.n;}
+function streakN(){try{const st=JSON.parse(localStorage.getItem("szj_streak")||'{"last":"","n":0}');return st.n||0;}catch(e){return 0;}}
+
+/* ================= 语音引擎 ================= */
+const Ear={
+ rec:null,want:false,base:"",cur:"",inter:"",onLive:null,restarts:0,
+ supported:!!(window.SpeechRecognition||window.webkitSpeechRecognition),
+ start(onLive){this.want=true;this.base="";this.cur="";this.inter="";this.restarts=0;this.onLive=onLive;this._spin();},
+ _spin(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const r=new SR();this.rec=r;
+  r.lang="zh-CN";r.continuous=true;r.interimResults=true;
+  r.onresult=e=>{this.cur="";this.inter="";
+   for(let i=0;i<e.results.length;i++){const res=e.results[i];if(res.isFinal)this.cur+=res[0].transcript;else this.inter+=res[0].transcript;}
+   this.onLive&&this.onLive(this.base+this.cur+this.inter);};
+  r.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){this.want=false;toast("麦克风权限被拒绝：请允许麦克风后重试");}};
+  r.onend=()=>{this.base+=this.cur;this.cur="";
+   if(this.want){if(++this.restarts>80){this.want=false;toast("语音识别频繁中断，请检查网络");return;}
+    setTimeout(()=>{if(this.want)this._spin();},Math.min(120*this.restarts,900));}};
+  try{r.start();}catch(err){setTimeout(()=>{if(this.want)this._spin();},400);}},
+ stop(){this.want=false;try{this.rec&&this.rec.stop();}catch(e){}
+  const t=this.base+this.cur;this.base="";this.cur="";this.inter="";return t.replace(/\s+/g," ").trim();}
+};
+const Voice={
+ voice:null,
+ init(){if(!("speechSynthesis"in window))return;const load=()=>{const vs=speechSynthesis.getVoices();this.voice=vs.find(v=>/zh[-_]CN/i.test(v.lang)&&/female|Xiaoxiao|Google/i.test(v.name))||vs.find(v=>/zh[-_]CN/i.test(v.lang))||null;};
+  load();speechSynthesis.onvoiceschanged=load;},
+ speak(text,onend){const st=getSettings();
+  if(st.muted||!("speechSynthesis"in window)){onend&&setTimeout(onend,400);return;}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="zh-CN";u.rate=st.rate;if(this.voice)u.voice=this.voice;
+   let done=false;const fin=()=>{if(!done){done=true;onend&&onend();}};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);
+   setTimeout(fin,Math.max(2500,text.length*260));}catch(e){onend&&setTimeout(onend,400);}},
+ stop(){try{speechSynthesis.cancel();}catch(e){}}
+};
+let AC=null;
+function beep(f,d){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();
+ const o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=f;
+ g.gain.setValueAtTime(.12,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);
+ o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function vib(){try{navigator.vibrate&&navigator.vibrate([160,80,160]);}catch(e){}}
+let wl=null;
+async function lockWake(){try{wl=await (navigator.wakeLock&&navigator.wakeLock.request("screen"));}catch(e){}}
+function unlockWake(){try{wl&&wl.release();wl=null;}catch(e){}}
+
+/* ================= 计时器 ================= */
+const Timer={iv:null,left:0,total:0,
+ start(sec,onEnd){this.stop();this.total=sec;this.left=sec;this.render();
+  this.iv=setInterval(()=>{this.left--;
+   if(this.left===30||this.left===10)beep(660,.08);
+   if(this.left>0&&this.left<=3)beep(880,.08);
+   this.render();
+   if(this.left<=0){this.stop();beep(1046,.3);vib();onEnd&&onEnd();}},1000);},
+ stop(){if(this.iv){clearInterval(this.iv);this.iv=null;}},
+ render(){if(!Session.active)return;const frac=this.total>0?Math.max(0,this.left/this.total):0;
+  $("#ringProg").style.strokeDashoffset=String(552.9*(1-frac));
+  $("#ringProg").style.stroke=frac<.15?"var(--bad)":"var(--brand)";
+  $("#ringTime").textContent=fmt(this.left);}
+};
+
+/* ================= 会话 ================= */
+const Session={active:false,mode:null,round:1,roundsMax:1,speakSec:60,material:"",keys:[],finished:false};
+
+function setMaterial(html){$("#s-material").innerHTML=html;$("#s-material").classList.remove("m-small");}
+function materialSmall(){$("#s-material").classList.add("m-small");}
+function setPhase(t){$("#s-phase").textContent=t;}
+function setPrimary(label,fn){const b=$("#s-primary");b.textContent=label;b.onclick=fn;}
+function setSecondary(label,fn){const b=$("#s-secondary");if(label){b.hidden=false;b.textContent=label;b.onclick=fn;}else{b.hidden=true;b.onclick=null;}}
+function showTranscript(){$("#s-live").hidden=false;$("#s-live").innerHTML='<span class="ph">你的发言会实时显示在这里…</span>';}
+function renderLive(t){const el=$("#s-live");el.textContent=t||"";el.scrollTop=el.scrollHeight;}
+
+/* ---- 模式入口 ---- */
+function startMode(mode){
+ Session.active=true;Session.mode=mode;Session.round=1;Session.finished=false;Session.keys=[];
+ $("#s-keys").hidden=true;$("#s-prep").hidden=true;
+ if(mode==="retell")startRetell();
+ else if(mode==="topic")startTopic();
+ else startQA();
+}
+function startRetell(){
+ Session.roundsMax=1;$("#s-mode").textContent="复述重构";
+ newRetellMaterial();
+ showView("v-session");
+ setPhase("阅读");Timer.stop();$("#ringTime").textContent="1:00";$("#ringLabel").textContent="复述";$("#ringProg").style.strokeDashoffset="0";
+ setPrimary("读完了，开始复述",()=>{Voice.speak("请用PREP结构，复述它的核心观点，时间六十秒。",()=>startSpeak(60,"复述"));});
+ setSecondary("换一篇",()=>{newRetellMaterial();});
+}
+function newRetellMaterial(){
+ Session.material=pick(PASSAGES);
+ setMaterial('<div class="m-tag">复述材料（出声读一遍，可以抄关键词）</div><div class="m-body">'+esc(Session.material)+'</div><div class="m-foot">'+Session.material.length+" 字</div>");
+}
+function startTopic(){
+ Session.roundsMax=1;$("#s-mode").textContent="即兴开讲";
+ newTopicMaterial();
+ showView("v-session");
+ setPhase("看题");Timer.stop();$("#ringTime").textContent="1:30";$("#ringLabel").textContent="开讲";$("#ringProg").style.strokeDashoffset="0";
+ setPrimary("开始准备（15秒）",beginTopicPrep);
+ setSecondary("换一题",()=>{newTopicMaterial();});
+}
+function newTopicMaterial(){
+ Session.material=pick(TOPICS);
+ setMaterial('<div class="m-tag">即兴主题 · 90 秒</div><div class="m-big">'+esc(Session.material)+"</div>");
+}
+function beginTopicPrep(){
+ Session.keys=[];
+ setMaterial('<div class="m-tag">即兴主题</div><div class="m-big">'+esc(Session.material)+"</div>");
+ $("#s-prep").hidden=false;["#k1","#k2","#k3"].forEach(s=>$(s).value="");$("#k1").focus();
+ setSecondary(null,null);setPrimary("跳过准备，直接开讲",()=>{Timer.stop();toTopicSpeak();});
+ setPhase("准备");
+ Voice.speak("题目，"+Session.material+"。你有十五秒，写下三个关键词。");
+ Timer.start(15,()=>toTopicSpeak());
+}
+function toTopicSpeak(){
+ $("#s-prep").hidden=true;
+ Session.keys=[$("#k1").value.trim(),$("#k2").value.trim(),$("#k3").value.trim()].filter(Boolean);
+ if(Session.keys.length){const k=$("#s-keys");k.hidden=false;k.innerHTML="你的关键词："+Session.keys.map(x=>"<span>"+esc(x)+"</span>").join("");}
+ Voice.speak("请开始。",()=>startSpeak(90,"开讲"));
+}
+function startQA(){
+ Session.roundsMax=5;Session.round=1;$("#s-mode").textContent="快问快答";
+ Session.material=pick(QUESTIONS);
+ showQAMaterial();
+ showView("v-session");
+ setPhase("听题");Timer.stop();$("#ringTime").textContent="1:00";$("#ringLabel").textContent="作答";$("#ringProg").style.strokeDashoffset="0";
+ setSecondary("换一题",()=>{Session.material=pick(QUESTIONS);showQAMaterial();Voice.speak(Session.material,qaCountdown);});
+ Voice.speak("快问快答，共五轮。第一题，"+Session.material,qaCountdown);
+}
+function showQAMaterial(){
+ setMaterial('<div class="m-tag">第 '+Session.round+"/"+Session.roundsMax+' 轮 · 教练提问</div><div class="m-big">'+esc(Session.material)+"</div>");
+}
+function qaCountdown(){
+ setPhase("倒计时");materialSmall();
+ setSecondary(null,null);setPrimary("重听问题",()=>Voice.speak(Session.material));
+ Timer.start(3,()=>startSpeak(60,"作答"));
+}
+
+/* ---- 通用开讲阶段 ---- */
+function startSpeak(sec,label){
+ Session.speakSec=sec;Session.finished=false;setPhase(label);materialSmall();
+ showTranscript();$("#micline").hidden=false;$("#s-live").hidden=false;
+ setPrimary("提前结束",endSpeak);setSecondary(null,null);
+ lockWake();Ear.start(renderLive);
+ Timer.start(sec,()=>endSpeak());
+}
+function endSpeak(){
+ const left=Math.max(Timer.left,0);Timer.stop();
+ const text=Ear.stop();$("#micline").hidden=true;unlockWake();
+ if(text.replace(/\s|[,，.。!！?？]/g,"").length<10){toast("没听到多少内容，检查麦克风后重试");renderLive("");
+  if(Session.mode==="qa"){setPrimary("重听问题",()=>Voice.speak(Session.material,qaCountdown));Timer.stop();}
+  else if(Session.mode==="retell")setPrimary("读完了，开始复述",()=>Voice.speak("请用PREP结构，复述它的核心观点，时间六十秒。",()=>startSpeak(60,"复述")));
+  else setPrimary("重新开讲（90秒）",()=>startSpeak(90,"开讲"));
+  return;}
+ const elapsed=Math.max(1,Session.speakSec-left);
+ Voice.speak("时间到。",null);
+ finishRound(text,elapsed);
+}
+
+/* ================= 分析 ================= */
+function analyze(text,sec){
+ const t=text.replace(/\s+/g,"");
+ const chars=t.length;
+ const cpm=sec>0?Math.round(chars/(sec/60)):0;
+ const fills=FILLERS.map(f=>({f,n:countSub(t,f)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+ const fillTotal=fills.reduce((s,x)=>s+x.n,0);
+ const fillPerMin=sec>0?+(fillTotal/(sec/60)).toFixed(1):fillTotal;
+ const signTotal=SIGNPOSTS.reduce((s,w)=>s+countSub(t,w),0);
+ const sents=t.split(/[。！？!?；;\n]+/).filter(s=>s.length>1);
+ const firstLen=sents.length?sents[0].length:chars;
+ const avgLen=sents.length?Math.round(sents.reduce((s,x)=>s+x.length,0)/sents.length):chars;
+ return{chars,cpm,fills,fillTotal,fillPerMin,signTotal,firstLen,avgLen};
+}
+function lvl(v,lo,hi){return v>=lo?2:(v>=hi?1:0);}/* lo=优阈值下界, hi=中阈值下界 */
+function badge(l){return '<span class="badge '+["bad","mid","good"][l]+'">'+["待改","中","优"][l]+"</span>";}
+function srow(label,val,ref,l){return '<div class="srow"><span class="sl">'+label+"</span><span class=\"sv\">"+val+"</span>"+badge(l)+'</div><div class="hint" style="margin:0 0 4px">'+ref+"</div>";}
+
+function saveRound(mode,text,sec){
+ const a=analyze(text,sec);
+ const arr=getSessions();
+ arr.push({ts:Date.now(),mode,sec,chars:a.chars,cpm:a.cpm,fillMin:a.fillPerMin,fill:a.fillTotal,sign:a.signTotal,firstLen:a.firstLen,avgLen:a.avgLen,text:text.slice(0,600)});
+ try{localStorage.setItem("szj_sessions",JSON.stringify(arr.slice(-100)));}catch(e){}
+ bumpStreak();renderHome();return a;
+}
+function statsLine(a){const top=a.fills.slice(0,3).map(x=>x.f+"×"+x.n).join("、")||"无";
+ return "语速"+a.cpm+"字/分，口头禅"+a.fillPerMin+"次/分（"+top+"），路标词"+a.signTotal+"次，首句"+a.firstLen+"字，平均句长"+a.avgLen+"字。";}
+function finishRound(text,elapsed){
+ const a=saveRound(Session.mode,text,elapsed);
+ Session.finished=true;
+ showAnalysis(a,text);
+}
+function showAnalysis(a,text){
+ showView("v-analysis");
+ let h="";
+ const cL=(a.cpm>=160&&a.cpm<=260)?2:((a.cpm>=130&&a.cpm<=320)?1:0);
+ h+=srow("语速",a.cpm+" 字/分","参考 160–260：慢是权威，快是慌张",cL);
+ h+=srow("首句字数",a.firstLen+" 字","结论先行：首句≤25字最好",a.firstLen<=25?2:(a.firstLen<=40?1:0));
+ h+=srow("路标词",a.signTotal+" 次","「第一/比如/所以重点是」≥3次为优",a.signTotal>=3?2:(a.signTotal>=1?1:0));
+ h+=srow("平均句长",a.avgLen+" 字","口语≤22字/句最好，长句必卡",a.avgLen<=22?2:(a.avgLen<=35?1:0));
+ h+=srow("口头禅",a.fillPerMin+" 次/分","≤2.5次/分为优（嗯/然后/就是…）",a.fillPerMin<=2.5?2:(a.fillPerMin<=5?1:0));
+ $("#a-stats").innerHTML=h;
+ $("#a-fillers").innerHTML='<div class="ai-head">口头禅排行</div>'+(a.fills.length?a.fills.slice(0,5).map(x=>'<div class="fillrow"><span>'+esc(x.f)+"</span><b>× "+x.n+"</b></div>").join(""):"<div class='hint'>本轮没检出常见口头禅，很干净 👍</div>");
+ $("#a-text").textContent=text;
+ /* 按钮 */
+ if(Session.mode==="qa"&&Session.round<5){$("#a-again").textContent="下一题（"+(Session.round+1)+"/5）";}
+ else if(Session.mode==="qa"){$("#a-again").textContent="完成训练";}
+ else{$("#a-again").textContent="再来一轮";}
+ requestFeedback(a,text);
+}
+function nextAction(){
+ if(Session.mode==="qa"){
+  if(Session.round<5){Session.round++;showQAMaterial();showView("v-session");setPhase("听题");Timer.stop();$("#ringTime").textContent="1:00";$("#ringLabel").textContent="作答";$("#ringProg").style.strokeDashoffset="0";
+   setSecondary("换一题",()=>{Session.material=pick(QUESTIONS);showQAMaterial();Voice.speak(Session.material,qaCountdown);});
+   Voice.speak("第"+Session.round+"题，"+Session.material,qaCountdown);}
+  else{Session.active=false;Session.finished=true;showView("home");toast("快问快答完成，今天很棒");Voice.speak("五轮完成，收工。记得把数据发给教练复盘。",null);}
+ }else if(Session.mode==="retell"){startRetell();}
+ else{startTopic();}
+}
+
+/* ================= AI 教练 ================= */
+async function callLLM(messages,maxTokens){
+ const st=getSettings();
+ if(!st.key)throw new Error("未填写 API Key");
+ const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),45000);
+ let res;
+ try{res=await fetch(st.endpoint,{method:"POST",signal:ctrl.signal,
+  headers:{"Content-Type":"application/json","Authorization":"Bearer "+st.key},
+  body:JSON.stringify({model:st.model,messages,temperature:.7,max_tokens:maxTokens||500})});}
+ catch(e){clearTimeout(to);throw new Error("网络或跨域失败："+(e.message||e));}
+ clearTimeout(to);
+ if(!res.ok){let d="";try{d=(await res.text()).slice(0,160);}catch(e){}throw new Error("接口返回 "+res.status+" "+d);}
+ const j=await res.json();
+ const c=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+ if(!c)throw new Error("接口返回格式异常");
+ return c.trim();
+}
+async function requestFeedback(a,text){
+ const st=getSettings();
+ const status=$("#a-ai-status"),body=$("#a-ai-text"),retry=$("#a-ai-retry"),goset=$("#a-ai-goset");
+ retry.hidden=true;goset.hidden=true;body.hidden=true;
+ if(!st.key){status.innerHTML="填入 API Key 后，我会逐句点评你的结构、口头禅和路标词，还会追问你。";goset.hidden=false;return;}
+ status.textContent="教练正在听你的回放…";
+ let prompt;
+ if(Session.mode==="retell")prompt="【模式：复述重构】\n材料："+Session.material+"\n学员60秒复述转写："+text+"\n统计："+statsLine(a)+"\n请点评。";
+ else if(Session.mode==="topic")prompt="【模式：即兴主题】\n题目："+Session.material+"\n学员的关键词："+(Session.keys.join("、")||"无")+"\n学员90秒发言转写："+text+"\n统计："+statsLine(a)+"\n请点评。";
+ else prompt="【模式：快问快答·第"+Session.round+"轮】\n问题："+Session.material+"\n学员回答转写："+text+"\n统计："+statsLine(a)+"\n请点评，最后另起一行以「下一题：」开头出一个新的即兴问题（10到25字，日常场景）。";
+ try{
+  const out=await callLLM([{role:"system",content:COACH_SYS},{role:"user",content:prompt}]);
+  status.textContent="";body.hidden=false;body.textContent=out;
+  const m=out.match(/下一题[：:]\s*(.+)/);
+  if(m&&Session.mode==="qa")Session.material=m[1].trim();
+  retry.hidden=false;
+  Voice.speak(out.replace(/下一题[：:]\s*.+/,""),null);
+ }catch(e){
+  status.innerHTML="点评失败："+esc(e.message)+"<br>可能是 Key、网络或跨域问题，可换接口或把报错发给教练。";
+  retry.hidden=false;
+ }
+}
+
+/* ================= 视图 ================= */
+let curView="home";
+function showView(name){
+ if(Session.active&&!Session.finished&&name!=="v-session"&&name!=="v-analysis"){
+  if(!confirm("训练进行中，退出本轮吗？"))return;
+  abortSession();
+ }
+ ["v-home","v-session","v-analysis","v-stats","v-settings"].forEach(id=>{$("#"+id).hidden=(id!==name);});
+ $$("#tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.view===name.replace("v-","")));
+ if(name==="v-home")curView="home";
+ renderHome();
+}
+function abortSession(){Session.active=false;Timer.stop();Ear.stop();Voice.stop();$("#micline").hidden=true;unlockWake();}
+function renderHome(){
+ const n=streakN();
+ $("#homeStreak").textContent=n?("🔥 连续 "+n+" 天"):"";
+ const today=new Date().toISOString().slice(0,10);
+ const c=getSessions().filter(s=>new Date(s.ts).toISOString().slice(0,10)===today).length;
+ $("#homeToday").textContent=c?("今天已练 "+c+" 轮 · 继续保持"):"今天还没开始，选一个模式吧";
+}
+function renderStats(){
+ const arr=getSessions();
+ const week=arr.filter(s=>Date.now()-s.ts<7*864e5);
+ $("#st-streak").textContent=streakN();
+ $("#st-count").textContent=week.length;
+ $("#st-cpm").textContent=week.length?Math.round(week.reduce((s,x)=>s+x.cpm,0)/week.length):"-";
+ $("#st-fill").textContent=week.length?(week.reduce((s,x)=>s+x.fillMin,0)/week.length).toFixed(1):"-";
+ $("#st-sign").textContent=week.length?(week.reduce((s,x)=>s+x.sign,0)/week.length).toFixed(1):"-";
+ $("#st-first").textContent=week.length?Math.round(week.reduce((s,x)=>s+x.firstLen,0)/week.length):"-";
+ const names={retell:"复述",topic:"即兴",qa:"问答"};
+ $("#st-list").innerHTML=arr.slice(-12).reverse().map(s=>{
+  const d=new Date(s.ts);const ds=(d.getMonth()+1)+"/"+d.getDate();
+  return '<div class="hist"><span class="hm">'+ds+'</span><span>'+names[s.mode]+'</span><span style="flex:1;text-align:right;color:var(--muted)">'+s.cpm+' 字/分 · 口头禅 '+s.fillMin+' /分</span><span style="flex:none">路标 '+s.sign+'</span></div>';}).join("")||'<div class="hint">还没有记录，先去练一轮吧</div>';
+}
+function buildReport(){
+ const arr=getSessions();const week=arr.filter(s=>Date.now()-s.ts<7*864e5);
+ const avg=k=>week.length?(week.reduce((s,x)=>s+x[k],0)/week.length).toFixed(1):"-";
+ const last=arr[arr.length-1];
+ return "【串珠教练·训练汇报】\n连续打卡："+streakN()+"天｜近7天："+week.length+"轮\n平均语速："+avg("cpm")+" 字/分｜口头禅："+avg("fillMin")+" 次/分｜路标词："+avg("sign")+" 次/轮｜首句平均："+avg("firstLen")+" 字\n最近一轮："+(last?(new Date(last.ts).toLocaleString()+"｜"+({retell:"复述",topic:"即兴",qa:"问答"}[last.mode]||last.mode)+"｜路标"+last.sign+"次"):"无")+"\n最近发言摘录：\n"+(arr.slice(-5).map(s=>"· "+s.text.slice(0,120)).join("\n")||"无");
+}
+async function copyText(t){
+ try{await navigator.clipboard.writeText(t);toast("已复制");}catch(e){
+  const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");toast("已复制");}catch(e2){toast("复制失败，请手动复制");}ta.remove();}
+}
+
+/* ================= 绑定与启动 ================= */
+$$("#tabbar button").forEach(b=>b.onclick=()=>showView("v-"+b.dataset.view));
+$$(".mode-card").forEach(c=>c.onclick=()=>{if(!Ear.supported){toast("请用 Android Chrome 打开本页再训练");return;}startMode(c.dataset.mode);});
+$("#a-again").onclick=nextAction;
+$("#a-home").onclick=()=>{Session.active=false;Session.finished=false;showView("home");};
+$("#a-ai-retry").onclick=()=>requestFeedback(analyze($("#a-text").textContent,Session.speakSec),$("#a-text").textContent);
+$("#a-ai-goset").onclick=()=>showView("v-settings");
+$("#st-copy").onclick=()=>copyText(buildReport());
+
+function markPreset(){const st=getSettings();$$("#preset-chips button").forEach(b=>{
+ const p=PRESETS[b.dataset.p];b.classList.toggle("on",p?(st.endpoint===p.endpoint):b.dataset.p==="custom"&&!Object.values(PRESETS).some(x=>x.endpoint===st.endpoint));});}
+$$("#preset-chips button").forEach(b=>b.onclick=()=>{
+ const p=PRESETS[b.dataset.p];
+ if(p){$("#set-endpoint").value=p.endpoint;$("#set-model").value=p.model;}
+ else{$("#set-endpoint").value="";$("#set-model").value="";}
+ markPreset();
+});
+$("#set-test").onclick=async()=>{
+ saveSettings();const r=$("#set-test-result");r.textContent="连接中…";
+ try{const out=await callLLM([{role:"user",content:"请只回复两个字：收到"}],16);r.textContent="连接成功："+out;}
+ catch(e){r.textContent="失败："+e.message;}
+};
+$("#set-export").onclick=()=>copyText(buildReport()+"\n\n原始数据：\n"+JSON.stringify(getSessions().slice(-30)));
+$("#set-clear").onclick=()=>{if(confirm("清空全部训练数据和设置？")){localStorage.removeItem("szj_sessions");localStorage.removeItem("szj_streak");toast("已清空");renderHome();}};
+["#set-endpoint","#set-model","#set-key"].forEach(s=>$(s).addEventListener("change",saveSettings));
+$("#set-rate").addEventListener("change",saveSettings);
+$("#set-muted").addEventListener("change",saveSettings);
+
+function initSettingsUI(){const st=getSettings();
+ $("#set-endpoint").value=st.endpoint;$("#set-model").value=st.model;$("#set-key").value=st.key;
+ $("#set-rate").value=st.rate;$("#set-muted").checked=st.muted;markPreset();}
+(function initManifest(){
+ try{
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="42" fill="#4B3FE3"/><rect x="82" y="30" width="28" height="92" rx="14" fill="none" stroke="#fff" stroke-width="9"/><rect x="60" y="86" width="72" height="16" rx="8" fill="#fff"/><rect x="86" y="102" width="20" height="52" rx="8" fill="#fff"/><rect x="72" y="150" width="48" height="10" rx="5" fill="#fff"/></svg>';
+  const icon="data:image/svg+xml,"+encodeURIComponent(svg);
+  const man={name:"串珠教练",short_name:"串珠教练",start_url:".",display:"standalone",background_color:"#0f1117",theme_color:"#0f1117",icons:[{src:icon,sizes:"192x192",type:"image/svg+xml"}]};
+  $("#manifest-link").href="data:application/manifest+json,"+encodeURIComponent(JSON.stringify(man));
+ }catch(e){}
+})();
+
+/* 调试钩子（浏览器测试用） */
+window.__test=function(){if(!Session.active){startMode("topic");}Session.speakSec=90;finishRound("我的看法是每天记录三件小事很有用，原因有三点。第一，记录让进步可见。比如我上周开始记睡眠，两周就发现了规律。第二，记录本身就是复盘。总之，记录是低成本高回报的习惯。",88);};
+
+Voice.init();
+initSettingsUI();
+renderHome();
+if(!Ear.supported)$("#srWarn").hidden=false;
+</script>
+
+
+</body></html>
